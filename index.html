@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+</head>
+<body>
+    <script>
+        var current = ""
+
+        function appendbutton(name) {
+            const button = document.createElement('button');
+            button.textContent = name;
+            button.className = 'button'
+            document.body.appendChild(button);
+            document.body.appendChild(document.createElement('br'));
+            document.body.appendChild(document.createElement('br'));
+            button.addEventListener('click', () => {
+                listfiles(button.textContent, showfiles)
+                console.log(button.textContent)
+            })
+        }
+
+        function showfiles(filelist){
+            
+            let paras = document.getElementsByClassName('button');
+
+            while(paras[0]) {
+                paras[0].parentNode.removeChild(paras[0]);
+            }
+
+            paras = document.getElementsByTagName('br');
+
+            while(paras[0]) {
+                paras[0].parentNode.removeChild(paras[0]);
+            }
+            
+
+            appendbutton("<-")
+            filelist.forEach(appendbutton)
+        }
+
+        function listfiles(path, cb) {
+        if(path != "<-") {
+            const request = new XMLHttpRequest();
+            request.open('GET',  "/l/" + current +"/"+ path);
+            request.responseType = 'text';
+            request.onload = function() {
+                r = JSON.parse(request.responseText);
+                if(r.download){
+                    window.open(window.location + "download?f=" + r.link)
+                }else{
+                    console.log("path: "+path);
+
+                    if (current.slice(-1)!="/"){
+                        current += "/"
+                    } 
+
+                    current += path
+                    console.log("current : ", current )
+                    cb(r.list)
+                }
+            };
+            request.send();
+           
+        }
+        else{
+            const re = ".*/(?=.+$)"
+            if(current.includes("/")){
+                current = current.match(re)[0]
+                console.log(current)
+            }else{
+                current = ""
+                console.log("c" , current)
+            }
+
+            const request = new XMLHttpRequest();
+            request.open('GET',  "/l/" + current);
+            request.responseType = 'text';
+            request.onload = function() {
+                r = JSON.parse(request.responseText);
+                if(r.download){
+                    window.open(window.location + "download?f=" + r.link)
+                }else{
+                    cb(r.list)
+                }}
+            request.send();
+        }
+    }
+        
+        listfiles("", showfiles);
+    </script>
+</body>
+</html>
